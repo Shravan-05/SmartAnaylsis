@@ -106,8 +106,27 @@
     if (currentScript) {
       const dataUrl = currentScript.getAttribute('data-api-url');
       if (dataUrl) {
+        // If dataUrl points to localhost, but we are loaded on a public web domain, prioritize production backend
+        if (
+          (dataUrl.includes('localhost') || dataUrl.includes('127.0.0.1')) &&
+          typeof window !== 'undefined' &&
+          window.location &&
+          window.location.hostname !== 'localhost' &&
+          window.location.hostname !== '127.0.0.1'
+        ) {
+          return 'https://smartanaylsis.onrender.com/api';
+        }
         return dataUrl.replace(/\/+$/, '');
       }
+    }
+
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1'
+    ) {
+      return 'https://smartanaylsis.onrender.com/api';
     }
 
     return 'http://localhost:5000/api';

@@ -15,7 +15,11 @@ export default function SettingsModal({ isOpen, onClose, selectedSite = 'cf_demo
   if (!isOpen) return null;
   if (typeof document === 'undefined') return null;
 
-  const scriptTag = `<script defer src="http://localhost:5173/tracker.js" data-site-id="${selectedSite}" data-api-url="http://localhost:5000/api"></script>`;
+  const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+  const hostDomain = typeof window !== 'undefined' ? window.location.origin : (isProd ? 'https://smart-anaylsis.vercel.app' : 'http://localhost:5173');
+  const apiEndpoint = isProd ? 'https://smartanaylsis.onrender.com/api' : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
+
+  const scriptTag = `<script defer src="${hostDomain}/tracker.js" data-site-id="${selectedSite}" data-api-url="${apiEndpoint}"></script>`;
 
   const copyScript = () => {
     navigator.clipboard.writeText(scriptTag);
@@ -26,8 +30,8 @@ export default function SettingsModal({ isOpen, onClose, selectedSite = 'cf_demo
   const configRows = [
     { label: 'Property ID',        value: selectedSite,                       mono: true,  color: 'teal' },
     { label: 'Property Name',      value: 'ApexCloud Demo',                   mono: false, color: null   },
-    { label: 'Host Domain',        value: 'http://localhost:5173',            mono: true,  color: null   },
-    { label: 'API Endpoint',       value: 'http://localhost:5000/api/events', mono: true,  color: null   },
+    { label: 'Host Domain',        value: hostDomain,                         mono: true,  color: null   },
+    { label: 'API Endpoint',       value: `${apiEndpoint}/events`,            mono: true,  color: null   },
   ];
 
   return createPortal(

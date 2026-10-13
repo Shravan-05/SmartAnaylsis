@@ -4,6 +4,13 @@ A production-grade, full-stack User Analytics Application built for **Smart Anal
 
 The platform features a **lightweight, standalone client tracking script (`tracker.js`)**, high-throughput **Node.js/Express event ingestion**, **MongoDB aggregation pipelines**, an interactive **Click Heatmap engine** (with coordinate density mapping, live page overlays, and an accessible tabular click list), **multi-website support (`site_id`)**, **time-range filtering**, and a **modern SaaS Analytics Dashboard** inspired by the clarity and polish of Linear, Stripe, and PostHog.
 
+### 🌐 Live Production Deployments
+- **Production Dashboard (Vercel)**: [https://smart-anaylsis.vercel.app/](https://smart-anaylsis.vercel.app/)
+- **ApexCloud Demo Website**: [https://smart-anaylsis.vercel.app/demo](https://smart-anaylsis.vercel.app/demo)
+- **Production API Server (Render)**: [https://smartanaylsis.onrender.com/api](https://smartanaylsis.onrender.com/api)
+- **API Health Check**: [https://smartanaylsis.onrender.com/api/health](https://smartanaylsis.onrender.com/api/health)
+- **GitHub Repository**: [https://github.com/Shravan-05/SmartAnaylsis](https://github.com/Shravan-05/SmartAnaylsis)
+
 ---
 
 ## Table of Contents

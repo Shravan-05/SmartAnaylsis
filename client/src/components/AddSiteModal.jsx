@@ -44,8 +44,11 @@ export default function AddSiteModal({ isOpen, onClose, onSiteAdded }) {
     }
   };
 
+  const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+  const apiEndpoint = isProd ? 'https://smartanaylsis.onrender.com/api' : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
+
   const trackingSnippet = createdSite
-    ? `<script defer src="${window.location.origin}/tracker.js" data-site-id="${createdSite.site_id}" data-api-url="http://localhost:5000/api"></script>`
+    ? `<script defer src="${window.location.origin}/tracker.js" data-site-id="${createdSite.site_id}" data-api-url="${apiEndpoint}"></script>`
     : '';
 
   const copySnippet = () => {

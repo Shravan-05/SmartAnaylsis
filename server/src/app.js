@@ -12,11 +12,24 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
+// Trust reverse proxy (essential for Render / Cloudflare to correctly extract client IP in rate limiting)
+app.set('trust proxy', 1);
+
 // 1. CORS Configuration
-// Strict in production, permissive for local development & tracking
+const defaultOrigins = [
+  'https://smart-anaylsis.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+];
+
+if (process.env.CLIENT_URL && !defaultOrigins.includes(process.env.CLIENT_URL)) {
+  defaultOrigins.push(process.env.CLIENT_URL);
+}
+
 const configuredOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-  : [process.env.CLIENT_URL || 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'];
+  : defaultOrigins;
 
 app.use(
   cors({
