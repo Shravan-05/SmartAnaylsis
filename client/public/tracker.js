@@ -1,5 +1,5 @@
 /**
- * CausalFunnel Analytics Tracker (tracker.js)
+ * Smart Analysis Analytics Tracker (tracker.js)
  * Lightweight, zero-dependency, standalone client-side tracking library.
  * Supports multi-website tracking via site_id, document-coordinate heatmaps,
  * session lifecycle management with inactivity expiry, and automatic SPA navigation detection.

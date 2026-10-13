@@ -1,6 +1,6 @@
-# CausalFunnel - Full-Stack User Analytics Platform
+# Smart Analysis - Full-Stack User Analytics Platform
 
-A production-grade, full-stack User Analytics Application built for the Full Stack Engineer hiring assignment at **CausalFunnel**.
+A production-grade, full-stack User Analytics Application built for **Smart Analysis**.
 
 The platform features a **lightweight, standalone client tracking script (`tracker.js`)**, high-throughput **Node.js/Express event ingestion**, **MongoDB aggregation pipelines**, an interactive **Click Heatmap engine** (with coordinate density mapping, live page overlays, and an accessible tabular click list), **multi-website support (`site_id`)**, **time-range filtering**, and a **modern SaaS Analytics Dashboard** inspired by the clarity and polish of Linear, Stripe, and PostHog.
 
@@ -33,7 +33,7 @@ The platform features a **lightweight, standalone client tracking script (`track
 
 ## Project Overview
 
-CausalFunnel Analytics captures and visualizes user behavior across digital web properties without relying on heavy third-party SDKs. 
+Smart Analysis captures and visualizes user behavior across digital web properties without relying on heavy third-party SDKs. 
 
 - **Autonomous Client Tracking**: Embed `tracker.js` via a single `<script>` tag. It automatically handles session persistence across browser reloads, deduplicates initialization page views, captures click interactions with document coordinates and screen viewports, and gracefully handles network issues.
 - **Multi-Website Support (`site_id`)**: Register multiple web properties, tag incoming events with unique `site_id` slugs, generate tailored embed snippets, and filter all dashboard views (Overview, Sessions, Heatmap) per website.
@@ -69,7 +69,7 @@ CausalFunnel Analytics captures and visualizes user behavior across digital web 
   - **Overview**: Real-time KPI cards, time-range filter (24h, 7d, 30d, all), Recharts activity area chart, event distribution donut chart, recent sessions list, and top visited pages.
   - **Sessions & User Journeys**: Searchable, paginated sessions table with ReDoS-safe search. Clicking any session opens an accessible chronological modal distinguishing page views and clicks with coordinate tags (Escape key support).
   - **Interactive Heatmap**: Triple-mode visualization (Document Coordinate Canvas, Page Preview Overlay, and Click List Table). Includes viewport device filtering (Desktop, Tablet, Mobile), zoom scaling (100%, 75%, 50%), and direct session drilldown.
-  - **Interactive Demo Website (`/demo`)**: Standalone SaaS landing page for ApexCloud with interactive CTAs, terminal deploy simulation, pricing calculators, FAQ accordion, and floating CausalFunnel tracking pill.
+  - **Interactive Demo Website (`/demo`)**: Standalone SaaS landing page for ApexCloud with interactive CTAs, terminal deploy simulation, pricing calculators, FAQ accordion, and floating Smart Analysis tracking pill.
 
 ---
 
@@ -545,6 +545,6 @@ dist/assets/index-DGritzWY.js   769.91 kB │ gzip: 219.30 kB
 git add .
 git commit -m "feat: complete full-stack user analytics platform upgrade"
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/causalfunnel-analytics.git
+git remote add origin https://github.com/Shravan-05/SmartAnaylsis.git
 git push -u origin main
 ```

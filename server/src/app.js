@@ -63,7 +63,7 @@ app.use('/api/seed', seedRoutes);
 // Root informational endpoint
 app.get('/', (req, res) => {
   res.json({
-    name: 'CausalFunnel User Analytics API',
+    name: 'Smart Analysis User Analytics API',
     version: '1.1.0',
     status: 'online',
     documentation: {

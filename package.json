@@ -1,7 +1,7 @@
 {
   "name": "user-analytics-workspace",
   "version": "1.0.0",
-  "description": "Full-Stack User Analytics Platform for CausalFunnel Assignment",
+  "description": "Full-Stack User Analytics Platform for Smart Analysis",
   "private": true,
   "type": "module",
   "scripts": {

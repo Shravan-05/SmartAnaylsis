@@ -30,7 +30,7 @@ function SidebarContent({ isConnected, setMobileOpen, onSeed, isSeeding, onOpenS
             <Activity className="h-4.5 w-4.5 text-white" strokeWidth={2.5} aria-hidden="true" />
           </div>
           <div className="leading-tight">
-            <p className="text-[13px] font-bold tracking-tight text-white">CausalFunnel</p>
+            <p className="text-[13px] font-bold tracking-tight text-white">Smart Analysis</p>
             <p className="text-[10px] text-slate-500 font-medium">Analytics Platform</p>
           </div>
         </div>

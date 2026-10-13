@@ -741,14 +741,14 @@ export default function Demo() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-[11px] gap-2">
           <p>© 2026 ApexCloud Technologies Inc. All rights reserved.</p>
-          <p className="font-mono text-slate-600">Instrumented with CausalFunnel tracker.js</p>
+          <p className="font-mono text-slate-600">Instrumented with Smart Analysis tracker.js</p>
         </div>
       </footer>
 
-      {/* 9. Subtle Floating CausalFunnel Tracking Indicator Pill */}
+      {/* 9. Subtle Floating Smart Analysis Tracking Indicator Pill */}
       {showTrackerWidget && (
         <aside
-          aria-label="CausalFunnel Tracking Status"
+          aria-label="Smart Analysis Tracking Status"
           className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-xl border border-teal-500/40 bg-slate-900/90 text-white px-3.5 py-2 text-xs shadow-2xl backdrop-blur-md animate-in fade-in"
         >
           <div className="flex items-center gap-2">
@@ -756,7 +756,7 @@ export default function Demo() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-400"></span>
             </span>
-            <span className="font-bold text-teal-400">CausalFunnel Tracked</span>
+            <span className="font-bold text-teal-400">Smart Analysis Tracked</span>
             <span className="text-slate-400 font-mono text-[11px]">
               • {clickCount} {clickCount === 1 ? 'click' : 'clicks'}
             </span>

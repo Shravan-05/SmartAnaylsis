@@ -1,7 +1,7 @@
 {
   "name": "user-analytics-server",
   "version": "1.0.0",
-  "description": "Backend API for CausalFunnel User Analytics Platform",
+  "description": "Backend API for Smart Analysis User Analytics Platform",
   "type": "module",
   "main": "src/server.js",
   "scripts": {

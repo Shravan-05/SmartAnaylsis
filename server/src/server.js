@@ -17,7 +17,7 @@ async function bootstrap() {
     // 2. Start HTTP server
     const server = app.listen(PORT, () => {
       console.log(`====================================================`);
-      console.log(`🚀 CausalFunnel Analytics Server running on port ${PORT}`);
+      console.log(`🚀 Smart Analysis Analytics Server running on port ${PORT}`);
       console.log(`🔗 API Base: http://localhost:${PORT}/api`);
       console.log(`❤️  Health:   http://localhost:${PORT}/api/health`);
       console.log(`====================================================`);
