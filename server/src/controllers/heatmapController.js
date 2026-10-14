@@ -21,8 +21,6 @@ export async function getHeatmapPages(req, res, next) {
 
     if (siteId && siteId !== 'all') {
       filter.site_id = siteId;
-      // Ensure only ApexCloud demo website pages appear for cf_demo_site
-      filter.page_url = { $regex: '/demo' };
     }
 
     if (timeRange || (startDate && endDate)) {

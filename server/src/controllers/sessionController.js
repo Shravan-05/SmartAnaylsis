@@ -24,9 +24,6 @@ export async function getSessions(req, res, next) {
     // Filter by site_id if provided
     if (siteId && siteId !== 'all') {
       matchStage.site_id = siteId;
-      if (siteId === 'cf_demo_site') {
-        matchStage.page_url = { $regex: '/demo' };
-      }
     }
 
     // Apply date range filter

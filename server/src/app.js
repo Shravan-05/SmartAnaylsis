@@ -18,6 +18,7 @@ app.set('trust proxy', 1);
 // 1. CORS Configuration
 const defaultOrigins = [
   'https://smart-anaylsis.vercel.app',
+  'https://smart-anaylsis-ow87bltko-shravan-05s-projects.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:3000',
@@ -42,8 +43,9 @@ app.use(
       const isDev = process.env.NODE_ENV !== 'production';
       const isAllowedConfigured = configuredOrigins.includes(origin);
       const isLocalhost = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
+      const isVercelApp = origin.endsWith('.vercel.app') && origin.includes('smart-anaylsis');
 
-      if (isAllowedConfigured || (isDev && isLocalhost)) {
+      if (isAllowedConfigured || (isDev && isLocalhost) || isVercelApp) {
         callback(null, true);
       } else {
         // In production, restrict to allowed origins; allow tracking script embedding

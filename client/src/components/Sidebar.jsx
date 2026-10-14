@@ -137,7 +137,7 @@ function SidebarContent({ isConnected, setMobileOpen, onSeed, isSeeding, onOpenS
               {isConnected ? 'Connected' : 'Offline'}
             </span>
           </div>
-          <span className="text-[10px] font-mono text-slate-600">:5000 · MongoDB</span>
+          <span className="text-[10px] font-mono text-slate-600">API · MongoDB</span>
         </div>
       </div>
     </div>

@@ -52,7 +52,14 @@ export default function Overview({ onSeed, isSeeding, selectedSite = 'cf_demo_si
       const data = await api.getStats(selectedSite, timeRange, startDate, endDate, groupBy);
       setStats(data);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to load stats');
+      console.error('[Analytics] Failed to fetch overview statistics:', err);
+      const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
+      const isNetwork = !err.response && (err.message?.includes('Network') || err.message?.includes('network'));
+      if (isTimeout || isNetwork) {
+        setError('Server is spinning up (Render free tier). Please click Retry in a moment.');
+      } else {
+        setError(err.response?.data?.message || 'Unable to load analytics. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -233,9 +240,12 @@ export default function Overview({ onSeed, isSeeding, selectedSite = 'cf_demo_si
 
       {/* ── Error banner ── */}
       {error && (
-        <div role="alert" className="flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          <span className="font-medium">Failed to load analytics: {error}</span>
-          <button onClick={loadStats} className="btn-danger btn-sm ml-3 shrink-0">Retry</button>
+        <div role="alert" className="flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-900 shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-amber-900">Analytics Status:</span>
+            <span>{error}</span>
+          </div>
+          <button onClick={loadStats} className="rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs px-3.5 py-1.5 ml-3 shrink-0 transition-colors shadow-sm">Retry</button>
         </div>
       )}
 

@@ -400,7 +400,7 @@ export default function Heatmap({ onSeed, isSeeding, selectedSite = 'cf_demo_sit
         </div>
 
         {/* Visualization Toggles */}
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           {/* Display Mode: Canvas vs Overlay vs List */}
           <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-1 text-xs font-medium" role="group" aria-label="Display mode">
             <button
@@ -481,8 +481,8 @@ export default function Heatmap({ onSeed, isSeeding, selectedSite = 'cf_demo_sit
             </select>
           </div>
 
-          {/* Zoom / Scale Selector */}
-          <div className="hidden sm:flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 text-xs font-medium" role="group" aria-label="Canvas zoom level">
+          {/* Zoom / Scale Selector — always visible on all screen sizes */}
+          <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 text-xs font-medium" role="group" aria-label="Canvas zoom level">
             <ZoomIn className="h-3.5 w-3.5 text-slate-400 ml-1" aria-hidden="true" />
             <button
               onClick={() => setCanvasScale(1)}
@@ -629,7 +629,7 @@ export default function Heatmap({ onSeed, isSeeding, selectedSite = 'cf_demo_sit
         </div>
 
         {/* Display Area: Table or Canvas */}
-        <div className="relative overflow-auto max-h-[750px] bg-slate-900/5 p-3 sm:p-6">
+        <div className="relative overflow-auto min-h-[320px] sm:min-h-[420px] max-h-[750px] bg-slate-900/5 p-3 sm:p-6">
           {loadingData ? (
             <div className="flex flex-col items-center justify-center py-24 text-slate-500 gap-2">
               <Loader2 className="h-8 w-8 animate-spin text-teal-600" />

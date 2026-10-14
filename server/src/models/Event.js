@@ -155,13 +155,16 @@ const eventSchema = new mongoose.Schema(
 eventSchema.index({ site_id: 1, session_id: 1, timestamp: 1 });
 eventSchema.index({ session_id: 1, timestamp: 1 });
 
-// 2. Global activity and recent session sorting
+// 2. Global activity and recent session sorting (optimized for stats and feed lookups)
 eventSchema.index({ site_id: 1, timestamp: -1 });
+eventSchema.index({ site_id: 1, timestamp: -1, event_type: 1 });
+eventSchema.index({ site_id: 1, timestamp: -1, session_id: 1 });
 eventSchema.index({ timestamp: -1 });
 
-// 3. Page-specific click queries for heatmaps
+// 3. Page-specific click queries for heatmaps (with and without date filtering)
 eventSchema.index({ site_id: 1, page_url: 1, event_type: 1 });
-eventSchema.index({ page_url: 1, event_type: 1 });
+eventSchema.index({ site_id: 1, page_url: 1, event_type: 1, timestamp: -1 });
+eventSchema.index({ page_url: 1, event_type: 1, timestamp: -1 });
 
 // 4. Scoped event type filtering
 eventSchema.index({ site_id: 1, event_type: 1, timestamp: -1 });

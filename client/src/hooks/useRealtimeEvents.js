@@ -34,9 +34,9 @@ export function useRealtimeEvents(siteId = 'cf_demo_site', onEventReceived = nul
     onResetRef.current = onResetReceived;
   }, [onResetReceived]);
 
-  // Periodic 1-second ticker to re-render relative times
+  // Periodic 10-second ticker to re-render relative times without burning CPU
   useEffect(() => {
-    const timer = setInterval(() => setTicker((t) => t + 1), 1000);
+    const timer = setInterval(() => setTicker((t) => t + 1), 10000);
     return () => clearInterval(timer);
   }, []);
 

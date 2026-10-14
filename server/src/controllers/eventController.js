@@ -90,7 +90,6 @@ export async function getRecentEvents(req, res, next) {
     const filter = {};
     if (siteId && siteId !== 'all') {
       filter.site_id = siteId;
-      filter.page_url = { $regex: '/demo' };
     }
 
     const events = await Event.find(filter)
@@ -136,27 +135,47 @@ export async function getStatsSummary(req, res, next) {
     const filter = {};
     if (siteId && siteId !== 'all') {
       filter.site_id = siteId;
-      // Ensure only ApexCloud demo website events are aggregated when targeting cf_demo_site
-      if (siteId === 'cf_demo_site') {
-        filter.page_url = { $regex: '/demo' };
-      }
     }
 
     if (dateResolution.mongoFilter) {
       filter.timestamp = dateResolution.mongoFilter;
     }
 
-    // 1. Overall counts
-    const [totalEvents, totalPageViews, totalClicks, distinctSessions] = await Promise.all([
-      Event.countDocuments(filter),
-      Event.countDocuments({ ...filter, event_type: 'page_view' }),
-      Event.countDocuments({ ...filter, event_type: 'click' }),
-      Event.distinct('session_id', filter),
+    // 1. Overall counts - execute in a single high-performance aggregation pass
+    const countsAggregation = await Event.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          totalEvents: { $sum: 1 },
+          totalPageViews: {
+            $sum: { $cond: [{ $eq: ['$event_type', 'page_view'] }, 1, 0] },
+          },
+          totalClicks: {
+            $sum: { $cond: [{ $eq: ['$event_type', 'click'] }, 1, 0] },
+          },
+          sessions: { $addToSet: '$session_id' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalEvents: 1,
+          totalPageViews: 1,
+          totalClicks: 1,
+          totalSessions: { $size: '$sessions' },
+        },
+      },
     ]);
 
-    const totalSessions = distinctSessions.length;
+    const countData = countsAggregation[0] || {
+      totalEvents: 0,
+      totalPageViews: 0,
+      totalClicks: 0,
+      totalSessions: 0,
+    };
+    const { totalEvents, totalPageViews, totalClicks, totalSessions } = countData;
 
-    // 2. Activity breakdown by determined grouping in user's timezone
     const groupInfo = resolveGrouping({
       rangeKey: dateResolution.rangeKey,
       start: dateResolution.start,
@@ -164,7 +183,37 @@ export async function getStatsSummary(req, res, next) {
       group_by: groupBy,
     });
 
-    const dbActivityTrend = await Event.aggregate([
+    // If no events match, return zero-filled response immediately without running sub-aggregations
+    if (totalEvents === 0) {
+      const emptyTrend = fillMissingBuckets({
+        start: dateResolution.start,
+        end: dateResolution.end,
+        grouping: groupInfo.grouping,
+        timezone,
+        dbTrend: [],
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          site_id: siteId || 'all',
+          time_range: dateResolution.rangeKey,
+          startDate: dateResolution.start,
+          endDate: dateResolution.end,
+          grouping: groupInfo.grouping,
+          totalSessions: 0,
+          totalEvents: 0,
+          totalPageViews: 0,
+          totalClicks: 0,
+          activityTrend: emptyTrend,
+          topPages: [],
+          recentSessions: [],
+        },
+      });
+    }
+
+    // 2. Activity breakdown by determined grouping in user's timezone
+    const dbActivityTrendPromise = Event.aggregate([
       { $match: filter },
       {
         $group: {
@@ -197,17 +246,8 @@ export async function getStatsSummary(req, res, next) {
       },
     ]);
 
-    // Zero-fill missing intervals within the selected time range
-    const activityTrend = fillMissingBuckets({
-      start: dateResolution.start,
-      end: dateResolution.end,
-      grouping: groupInfo.grouping,
-      timezone,
-      dbTrend: dbActivityTrend,
-    });
-
     // 3. Top pages visited
-    const topPages = await Event.aggregate([
+    const topPagesPromise = Event.aggregate([
       { $match: filter },
       {
         $group: {
@@ -234,37 +274,68 @@ export async function getStatsSummary(req, res, next) {
       },
     ]);
 
-    // 4. Five most recent sessions
-    const recentSessions = await Event.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: '$session_id',
-          total_events: { $sum: 1 },
-          page_views: {
-            $sum: { $cond: [{ $eq: ['$event_type', 'page_view'] }, 1, 0] },
+    // 4. Five most recent sessions - find latest session IDs via index first, then aggregate only those 5
+    const recentSessionsPromise = (async () => {
+      const recentDocs = await Event.find(filter)
+        .sort({ timestamp: -1 })
+        .select('session_id')
+        .limit(100);
+
+      const candidateSessionIds = [];
+      for (const doc of recentDocs) {
+        if (doc.session_id && !candidateSessionIds.includes(doc.session_id)) {
+          candidateSessionIds.push(doc.session_id);
+          if (candidateSessionIds.length >= 5) break;
+        }
+      }
+
+      if (candidateSessionIds.length === 0) return [];
+
+      return Event.aggregate([
+        { $match: { ...filter, session_id: { $in: candidateSessionIds } } },
+        {
+          $group: {
+            _id: '$session_id',
+            total_events: { $sum: 1 },
+            page_views: {
+              $sum: { $cond: [{ $eq: ['$event_type', 'page_view'] }, 1, 0] },
+            },
+            clicks: {
+              $sum: { $cond: [{ $eq: ['$event_type', 'click'] }, 1, 0] },
+            },
+            first_event: { $min: '$timestamp' },
+            last_event: { $max: '$timestamp' },
           },
-          clicks: {
-            $sum: { $cond: [{ $eq: ['$event_type', 'click'] }, 1, 0] },
+        },
+        { $sort: { last_event: -1 } },
+        {
+          $project: {
+            _id: 0,
+            session_id: '$_id',
+            total_events: 1,
+            page_views: 1,
+            clicks: 1,
+            first_event: 1,
+            last_event: 1,
           },
-          first_event: { $min: '$timestamp' },
-          last_event: { $max: '$timestamp' },
         },
-      },
-      { $sort: { last_event: -1 } },
-      { $limit: 5 },
-      {
-        $project: {
-          _id: 0,
-          session_id: '$_id',
-          total_events: 1,
-          page_views: 1,
-          clicks: 1,
-          first_event: 1,
-          last_event: 1,
-        },
-      },
+      ]);
+    })();
+
+    const [dbActivityTrend, topPages, recentSessions] = await Promise.all([
+      dbActivityTrendPromise,
+      topPagesPromise,
+      recentSessionsPromise,
     ]);
+
+    // Zero-fill missing intervals within the selected time range
+    const activityTrend = fillMissingBuckets({
+      start: dateResolution.start,
+      end: dateResolution.end,
+      grouping: groupInfo.grouping,
+      timezone,
+      dbTrend: dbActivityTrend,
+    });
 
     return res.status(200).json({
       success: true,

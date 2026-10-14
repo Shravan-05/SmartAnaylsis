@@ -11,8 +11,38 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 30000,
 });
+
+// Controlled retry interceptor for Render cold starts (idempotent GET queries only)
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const config = error.config;
+    if (!config) return Promise.reject(error);
+
+    config.__retryCount = config.__retryCount || 0;
+    const maxRetries = 2;
+
+    const isTimeoutOrNetwork =
+      error.code === 'ECONNABORTED' ||
+      error.message?.includes('timeout') ||
+      !error.response ||
+      error.response.status === 503 ||
+      error.response.status === 504;
+
+    const isIdempotent = !config.method || config.method.toLowerCase() === 'get';
+
+    if (isTimeoutOrNetwork && isIdempotent && config.__retryCount < maxRetries) {
+      config.__retryCount += 1;
+      const backoffDelay = config.__retryCount * 2000;
+      await new Promise((resolve) => setTimeout(resolve, backoffDelay));
+      return apiClient(config);
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export const APEX_SITE_ID = 'cf_demo_site';
 
