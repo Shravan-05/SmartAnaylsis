@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -6,6 +6,7 @@ import api from './services/api';
 import ResetConfirmationModal from './components/ResetConfirmationModal';
 import SettingsModal from './components/SettingsModal';
 import MobileBottomNav from './components/MobileBottomNav';
+import { useBackendHealth } from './hooks/useBackendHealth';
 
 // Code-split heavy routes for rapid initial page load
 const Overview = lazy(() => import('./pages/Overview'));
@@ -29,7 +30,9 @@ function PageSkeleton() {
 
 function AppContent() {
   const location = useLocation();
-  const [isConnected, setIsConnected] = useState(false);
+  // Backend lifecycle: 'connecting' | 'online' | 'offline'
+  const { backendStatus, retryConnection } = useBackendHealth();
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
@@ -47,26 +50,9 @@ function AppContent() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Check backend & DB connectivity
-  const checkHealth = useCallback(async () => {
-    try {
-      const data = await api.getHealth();
-      setIsConnected(data.status === 'healthy');
-    } catch {
-      setIsConnected(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkHealth();
-    const interval = setInterval(checkHealth, 25000);
-    return () => clearInterval(interval);
-  }, [checkHealth]);
-
-  // Global manual refresh trigger
+  // Global manual refresh trigger — refreshes analytics data only, backend status is managed separately
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await checkHealth();
     setRefreshKey((k) => k + 1);
     setTimeout(() => setIsRefreshing(false), 500);
   };
@@ -173,7 +159,8 @@ function AppContent() {
 
       {/* Sidebar */}
       <Sidebar
-        isConnected={isConnected}
+        backendStatus={backendStatus}
+        onRetryConnection={retryConnection}
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
         onSeed={handleSeed}
@@ -193,6 +180,7 @@ function AppContent() {
           onSeed={handleSeed}
           onOpenSettings={() => setIsSettingsOpen(true)}
           setMobileOpen={setMobileOpen}
+          backendStatus={backendStatus}
         />
 
         {/* Scoped Reset Confirmation Modal */}

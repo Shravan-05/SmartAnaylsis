@@ -7,9 +7,10 @@ import {
   Compass,
   Activity,
   Settings,
-  Database,
   X,
   Zap,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react';
 
 const navItems = [
@@ -19,7 +20,7 @@ const navItems = [
   { name: 'Demo Site',  to: '/demo',     icon: Compass,         end: false, badge: 'ApexCloud' },
 ];
 
-function SidebarContent({ isConnected, setMobileOpen, onSeed, isSeeding, onOpenSettings, isMobile }) {
+function SidebarContent({ backendStatus, onRetryConnection, setMobileOpen, onSeed, isSeeding, onOpenSettings, isMobile }) {
   return (
     <div className="flex h-full flex-col bg-slate-950 text-slate-300 border-r border-slate-800/60">
 
@@ -119,38 +120,64 @@ function SidebarContent({ isConnected, setMobileOpen, onSeed, isSeeding, onOpenS
           <span>{isSeeding ? 'Generating…' : 'Generate Demo Data'}</span>
         </button>
 
-        {/* Backend status */}
+        {/* Backend status pill */}
         <div
           role="status"
           aria-live="polite"
-          aria-label={`Backend connection: ${isConnected ? 'connected' : 'offline'}`}
-          className="flex items-center justify-between rounded-xl bg-slate-900 border border-slate-800/80 px-3 py-2"
+          aria-label={`Backend connection: ${backendStatus}`}
+          className="space-y-1.5"
         >
-          <div className="flex items-center gap-2">
-            <div className="relative flex h-2 w-2">
-              {isConnected && (
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+          <div className="flex items-center justify-between rounded-xl bg-slate-900 border border-slate-800/80 px-3 py-2">
+            <div className="flex items-center gap-2">
+              {backendStatus === 'connecting' && (
+                <Loader2 className="h-2.5 w-2.5 text-amber-400 animate-spin flex-shrink-0" />
               )}
-              <span className={`relative inline-flex h-2 w-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-rose-500'}`} />
+              {backendStatus === 'online' && (
+                <div className="relative flex h-2 w-2 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                </div>
+              )}
+              {backendStatus === 'offline' && (
+                <div className="h-2 w-2 rounded-full bg-rose-500 flex-shrink-0" />
+              )}
+              <span className={`text-[11px] font-semibold ${
+                backendStatus === 'online'     ? 'text-emerald-400' :
+                backendStatus === 'connecting' ? 'text-amber-400'   :
+                                                 'text-rose-400'
+              }`}>
+                {backendStatus === 'online'     ? 'Online'      :
+                 backendStatus === 'connecting' ? 'Connecting…' :
+                                                  'Offline'}
+              </span>
             </div>
-            <span className="text-[11px] font-semibold text-slate-400">
-              {isConnected ? 'Connected' : 'Offline'}
-            </span>
+            <span className="text-[10px] font-mono text-slate-600">API · DB</span>
           </div>
-          <span className="text-[10px] font-mono text-slate-600">API · MongoDB</span>
+
+          {/* Retry button — only shown when offline */}
+          {backendStatus === 'offline' && onRetryConnection && (
+            <button
+              onClick={onRetryConnection}
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-rose-900/30 hover:bg-rose-800/40 border border-rose-800/50 px-3 py-2 text-[11px] font-semibold text-rose-300 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+            >
+              <RefreshCw className="h-3 w-3" />
+              Retry Connection
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-export default function Sidebar({ isConnected, mobileOpen, setMobileOpen, onSeed, isSeeding, onOpenSettings }) {
+export default function Sidebar({ backendStatus, onRetryConnection, mobileOpen, setMobileOpen, onSeed, isSeeding, onOpenSettings }) {
   return (
     <>
       {/* Desktop: fixed sidebar */}
       <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-30">
         <SidebarContent
-          isConnected={isConnected}
+          backendStatus={backendStatus}
+          onRetryConnection={onRetryConnection}
           setMobileOpen={setMobileOpen}
           onSeed={onSeed}
           isSeeding={isSeeding}
@@ -177,7 +204,8 @@ export default function Sidebar({ isConnected, mobileOpen, setMobileOpen, onSeed
             onClick={(e) => e.stopPropagation()}
           >
             <SidebarContent
-              isConnected={isConnected}
+              backendStatus={backendStatus}
+              onRetryConnection={onRetryConnection}
               setMobileOpen={setMobileOpen}
               onSeed={onSeed}
               isSeeding={isSeeding}

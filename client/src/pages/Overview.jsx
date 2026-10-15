@@ -40,28 +40,53 @@ export default function Overview({ onSeed, isSeeding, selectedSite = 'cf_demo_si
   const [groupBy, setGroupBy] = useState('auto');
 
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Analytics lifecycle — completely independent of global backend status:
+  // 'loading' | 'loading-slow' | 'loaded' | 'empty' | 'error'
+  const [analyticsStatus, setAnalyticsStatus] = useState('loading');
+  const [analyticsError, setAnalyticsError] = useState(null);
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
+  // Derived convenience booleans
+  const loading = analyticsStatus === 'loading' || analyticsStatus === 'loading-slow';
+  const error = analyticsStatus === 'error' ? analyticsError : null;
+
   const loadStats = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setAnalyticsStatus('loading');
+      setAnalyticsError(null);
       const data = await api.getStats(selectedSite, timeRange, startDate, endDate, groupBy);
       setStats(data);
+      // Determine loaded vs empty
+      const hasData = data && (
+        (data.totalEvents || 0) > 0 ||
+        (data.totalSessions || 0) > 0
+      );
+      setAnalyticsStatus(hasData ? 'loaded' : 'empty');
     } catch (err) {
-      console.error('[Analytics] Failed to fetch overview statistics:', err);
-      const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
-      const isNetwork = !err.response && (err.message?.includes('Network') || err.message?.includes('network'));
-      if (isTimeout || isNetwork) {
-        setError('Server is spinning up (Render free tier). Please click Retry in a moment.');
+      console.warn('[Analytics] Failed to fetch overview statistics:', err);
+      const isTransient =
+        err.code === 'ECONNABORTED' ||
+        err.message?.includes('timeout') ||
+        err.message?.includes('network') ||
+        err.message?.includes('Network') ||
+        !err.response ||
+        err.response?.status === 503 ||
+        err.response?.status === 504;
+
+      if (isTransient) {
+        // Transient failure: keep showing whatever data we have,
+        // mark as loading-slow so the UI shows a soft "still loading" state.
+        // Do NOT set analyticsStatus='error' — this is NOT an Offline condition.
+        setAnalyticsStatus('loading-slow');
+        setAnalyticsError('The backend is warming up. Analytics will appear shortly.');
       } else {
-        setError(err.response?.data?.message || 'Unable to load analytics. Please try again.');
+        // Genuine API error (4xx, unexpected server error)
+        setAnalyticsStatus('error');
+        setAnalyticsError(
+          err.response?.data?.message || 'Unable to load analytics. Please try again.'
+        );
       }
-    } finally {
-      setLoading(false);
     }
   }, [selectedSite, timeRange, startDate, endDate, groupBy]);
 
@@ -238,12 +263,28 @@ export default function Overview({ onSeed, isSeeding, selectedSite = 'cf_demo_si
         </div>
       </div>
 
-      {/* ── Error banner ── */}
-      {error && (
-        <div role="alert" className="flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-900 shadow-sm">
+      {/* ── Analytics status banner ── */}
+      {analyticsStatus === 'loading-slow' && (
+        <div role="status" className="flex items-center justify-between rounded-2xl border border-amber-200/60 bg-amber-50/70 px-4 py-3 text-sm text-amber-800 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <div className="h-4 w-4 rounded-full border-2 border-amber-400 border-t-transparent animate-spin flex-shrink-0" />
+            <span className="font-medium">Backend is warming up</span>
+            <span className="text-amber-700 text-xs hidden sm:inline">— analytics will appear once the server responds.</span>
+          </div>
+          <button
+            onClick={loadStats}
+            className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs px-3.5 py-1.5 ml-3 shrink-0 transition-colors shadow-sm"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {analyticsStatus === 'error' && analyticsError && (
+        <div role="alert" className="flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50/90 px-4 py-3 text-sm text-rose-900 shadow-sm">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-amber-900">Analytics Status:</span>
-            <span>{error}</span>
+            <span className="font-semibold">Analytics Error:</span>
+            <span>{analyticsError}</span>
           </div>
           <button onClick={loadStats} className="rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs px-3.5 py-1.5 ml-3 shrink-0 transition-colors shadow-sm">Retry</button>
         </div>
